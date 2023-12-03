@@ -6,7 +6,7 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: dbc:mysql://localhost:3306/project_01?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/project_01?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: 12341234
   jpa:
@@ -18,3 +18,8 @@ spring:
         format_sql: true # SQL pretty print
 jwt:
   secretKey: supercoding
+
+springfox:
+  documentation:
+    swagger-ui:
+      enabled: true
