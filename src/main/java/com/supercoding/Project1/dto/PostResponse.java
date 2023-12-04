@@ -9,22 +9,24 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @ToString
 @Builder
 public class PostResponse {
-    private Integer post_id;
+    private long post_id;
     private String title;
     private String content;
-    private UserEntity user;
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    private String email;
 
     public static PostResponse from(Post post){
-        return PostResponse.builder()
+        PostResponse postResponse = PostResponse.builder()
                 .post_id(post.getPost_id())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .user(post.getUser())
-                .created_at(post.getCreated_at()).build();
+                .build();
+        if (post.getUser() != null){
+            postResponse.setEmail(post.getUser().getEmail());
+        }
+        return postResponse;
     }
 }

@@ -29,28 +29,24 @@ public class PostController {
 
     @ApiOperation("모든 post 조회")
     @GetMapping("/posts")
-    public List<PostResponse> getAllPosts(AuthInfo authInfo, @RequestBody PostResponse postResponse){
-        return ResponseEntity.ok(
-                postService.getAllPosts().stream()
-                        .map(postResponse::from)
-                        .collect(Collectors.toList())
-        );
+    public List<PostResponse> getAllPosts(AuthInfo authInfo){
+        return postService.getAllPosts()
+                .stream()
+                .map(PostResponse::from)
+                .collect(Collectors.toList());
     }
 
     @ApiOperation("post 수정")
     @PutMapping("/posts/{post_id}")
     public Post updatePost(AuthInfo authInfo, @PathVariable Integer post_id, @RequestBody PostRequest postRequest){
         return postService.updatePost(post_id, postRequest);
-
-
     }
 
     @ApiOperation("post 삭제")
     @DeleteMapping("/posts/{post_id}")
-    public void deletePostById(AuthInfo authInfo, Integer post_id){
-        postService.deletePostById(post_id);
-        return post_id + "post deleted";
-
+    public String deletePostById(AuthInfo authInfo, Integer post_id){
+        postService.deletePostById(authInfo.getMemberId(), post_id);
+        return "Post with id = " + post_id + " has been deleted";
     }
 
 
