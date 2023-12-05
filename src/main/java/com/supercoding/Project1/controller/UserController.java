@@ -38,10 +38,20 @@ public class UserController {
         Map<String, String> response = new HashMap<>();
 
         if (token != null) {
+            if ("email".equals(token)) {
+                response.put("message", "로그인 실패 (이메일)");
+                return ResponseEntity.ok(response);
+            }
+            if ("password".equals(token)) {
+                response.put("message", "로그인 실패 (비밀번호)");
+                return ResponseEntity.ok(response);
+            }
+
             httpServletResponse.setHeader("Authorization", "Bearer " + token);
             response.put("message", "로그인 성공");
             response.put("token", token);
             return ResponseEntity.ok(response);
+
         } else {
             response.put("message", "로그인 실패");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);

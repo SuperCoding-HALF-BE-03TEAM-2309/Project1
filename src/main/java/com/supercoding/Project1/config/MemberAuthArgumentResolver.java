@@ -30,12 +30,12 @@ public class MemberAuthArgumentResolver implements HandlerMethodArgumentResolver
             throw new RuntimeException("UnauthorizedException");
         }
         String token = authorization.substring(7);
-        Map<String, Long> decodedToken = jwtService.decode(token);
-        Long memberId = decodedToken.get(JwtService.CLAIM_NAME_MEMBER_ID);
+        Map<String, String> decodedToken = jwtService.decode(token);
+        String email = decodedToken.get(JwtService.CLAIM_NAME_EMAIL);
 
-        if(memberId == null){
+        if(email == null){
             throw new RuntimeException("UnauthorizedException");
         }
-        return AuthInfo.of(memberId);
+        return AuthInfo.of(email);
     }
 }

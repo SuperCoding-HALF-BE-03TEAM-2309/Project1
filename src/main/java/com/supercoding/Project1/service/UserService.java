@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -17,8 +19,12 @@ public class UserService {
 
     @Transactional
     public boolean signUp(UserRequest userRequest) {
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+
         String email = userRequest.getEmail();
         String password = userRequest.getPassword();
+        String nickname = userRequest.getNickname();
+        Timestamp createdAt = currentTimestamp;
 
         // 이미 등록된 이메일인지 확인
         if(userRepository.existsByEmail(email)){
@@ -32,6 +38,8 @@ public class UserService {
         UserEntity newUser = UserEntity.builder()
                 .email(email)
                 .password(encryptedPassword)
+                .nickname(nickname)
+                .created_at(createdAt)
                 .build();
 
         userRepository.save(newUser);
@@ -43,16 +51,18 @@ public class UserService {
         String password = userRequest.getPassword();
 
         UserEntity userEntity = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElse(null);
+        if (userEntity == null) {
+            return "email";
+        }
+//                .orElseThrow(() -> new RuntimeException("User not found"));
         if(passwordEncoder.matches(password, userEntity.getPassword())){
             // 비밀번호가 일치하는 경우, JWT 토큰 생성
-            String token = jwtService.encode(userEntity.getId());
-            return token;
+            return jwtService.encode(userEntity.getEmail());
         } else {
-            throw new RuntimeException("Invalid password");
+            return "password";
+//            throw new RuntimeException("Invalid password");
         }
-
-
     }
 
     public boolean logout(String token) {
