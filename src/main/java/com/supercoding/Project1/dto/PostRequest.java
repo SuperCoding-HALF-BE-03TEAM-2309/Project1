@@ -1,33 +1,22 @@
 package com.supercoding.Project1.dto;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import com.supercoding.Project1.entity.Post;
 import com.supercoding.Project1.entity.UserEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
-@Setter
-@ToString
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostRequest {
-    private String title;
-    private String content;
-    private UserEntity user;
-
-    @Builder
-    public PostRequest(String title, String content){
-        this.title = title;
-        this.content = content;
-    }
+    private String title; // 제목
+    private String content; // 내용
+    private String email; // 이메일
 
     public Post toEntity(){
         return Post.builder()
                 .title(title)
                 .content(content)
-                // Todo .user(user.getEmail()) // 유저 이메일 가져오기
+                .email(email)
                 .build();
     }
 
