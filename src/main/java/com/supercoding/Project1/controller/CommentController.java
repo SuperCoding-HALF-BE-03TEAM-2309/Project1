@@ -1,7 +1,10 @@
 package com.supercoding.Project1.controller;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.supercoding.Project1.dto.AuthInfo;
 import com.supercoding.Project1.entity.Comment;
 import com.supercoding.Project1.service.CommentService;
+import com.supercoding.Project1.service.JwtService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +23,8 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
+    private JwtService jwtService;
     private static final Logger logger = LoggerFactory.getLogger(CommentController.class);
-
 
     @ApiOperation("댓글 조회")
     @GetMapping("/comments")
@@ -28,18 +32,19 @@ public class CommentController {
         logger.info("Received request for /comments(get)");
         Map<String, List<Comment>> response = new HashMap<>();
         List<Comment> comments = commentService.getCommentsByPostId(post_id);
-        // TODO :: nickname 추가
         response.put("comments", comments);
         return ResponseEntity.ok(response);
     }
 
     @ApiOperation("댓글 입력")
     @PostMapping("/comments")
-    public ResponseEntity<Map<String,String>> insertComment(@RequestBody Comment comment){
+    public ResponseEntity<Map<String,String>> insertComment(AuthInfo authInfo, @RequestBody Comment comment){
         logger.info("Received request for /comments(post)");
         Map<String, String> response = new HashMap<>();
-        Comment createComment = commentService.putComment(comment);
-        if( createComment == null) {
+        String authEmail = authInfo.getEmail().replaceAll("\"", "");
+
+        Comment createComment = commentService.putComment(authEmail, comment);
+        if (createComment == null) {
             response.put("message", "댓글 작성이 실패되었습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } else {
@@ -59,13 +64,13 @@ public class CommentController {
 
     @ApiOperation("댓글 수정")
     @PutMapping("/comments")
-    public ResponseEntity<Map<String,String>> updateComment(@RequestBody Comment request){
+    public ResponseEntity<Map<String,String>> updateComment(AuthInfo authInfo, @RequestBody Comment request){
         logger.info("Received request for /comments(put)");
         Long id = request.getId();
         Long postId = request.getPostId();
         String email = request.getEmail();
         String content = request.getContent();
-
+        String authEmail = authInfo.getEmail().replaceAll("\"", "");
 
         Map<String, String> response = new HashMap<>();
         if( id == null || postId == null || email == null || content == null ){
@@ -73,7 +78,7 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         else {
-            Comment updateComment = commentService.updateComment(request);
+            Comment updateComment = commentService.updateComment(authEmail, request);
             if (updateComment != null) {
                 response.put("message", "댓글이 성공적으로 수정되었습니다.");
                 return ResponseEntity.ok(response);
@@ -96,16 +101,18 @@ public class CommentController {
 
     @ApiOperation("댓글 삭제")
     @DeleteMapping ("/comments")
-    public ResponseEntity<Map<String,String>> deleteComment(@RequestBody Comment comment) {
+    public ResponseEntity<Map<String,String>> deleteComment(AuthInfo authInfo, @RequestBody Comment comment) {
         logger.info("Received request for /comments(delete)");
         Map<String, String> response = new HashMap<>();
+        String authEmail = authInfo.getEmail().replaceAll("\"", "");
+
         Long commandId = comment.getId();
         if( commandId == null ){
             response.put("message", "id가 입력되지 않았습니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         else {
-            boolean isDelete = commentService.deleteComment(comment.getId());
+            boolean isDelete = commentService.deleteComment(authEmail,comment.getId());
             if (isDelete == true) {
                 response.put("message", "댓글이 성공적으로 삭제되었습니다.");
                 return ResponseEntity.ok(response);
