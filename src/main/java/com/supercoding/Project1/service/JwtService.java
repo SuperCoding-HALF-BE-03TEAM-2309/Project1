@@ -19,9 +19,9 @@ import java.util.Map;
 @Service
 public class JwtService {
     @Value("${jwt.secretKey}")
-    private String secretKey; // jacypt(?) 암호화
+    private String secretKey;
 
-    public static final String CLAIM_NAME_MEMBER_ID = "MemberId";
+    public static final String CLAIM_NAME_EMAIL = "Email";
     private Algorithm algorithm;
     private JWTVerifier jwtVerifier;
 
@@ -31,20 +31,20 @@ public class JwtService {
         jwtVerifier = JWT.require(algorithm).build();
     }
 
-    public String encode(Long memberId){
+    public String encode(String email){
         LocalDateTime expiredAt = LocalDateTime.now().plusWeeks(4L);
         Date date = Timestamp.valueOf(expiredAt);
 
         return JWT.create()
-                .withClaim(CLAIM_NAME_MEMBER_ID, memberId)
+                .withClaim(CLAIM_NAME_EMAIL, email)
                 .withExpiresAt(date)
                 .sign(algorithm);
     }
 
-    public Map<String, Long> decode(String token) {
+    public Map<String, String> decode(String token) {
         try{
             DecodedJWT jwt = jwtVerifier.verify(token);
-            return Map.of(CLAIM_NAME_MEMBER_ID, jwt.getClaim(CLAIM_NAME_MEMBER_ID).asLong());
+            return Map.of(CLAIM_NAME_EMAIL, jwt.getClaim(CLAIM_NAME_EMAIL).toString());
         }catch (JWTVerificationException e){
             log.warn("Failed to decode jwt. token: {}", token, e);
             return null;

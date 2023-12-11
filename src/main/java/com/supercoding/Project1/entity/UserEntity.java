@@ -3,24 +3,24 @@ package com.supercoding.Project1.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Table(name = "users")
 @Entity
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @JsonIgnore
-    private Long id;
-
     private String email;
 
     @JsonIgnore
     private String password;
+
+    private String nickname;
+
+    private Timestamp created_at;
 }
