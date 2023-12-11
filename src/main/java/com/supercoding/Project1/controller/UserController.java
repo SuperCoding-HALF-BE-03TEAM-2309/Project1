@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.NativeWebRequest;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
@@ -60,13 +61,28 @@ public class UserController {
 
     // 로그아웃 API
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody UserRequest userRequest) {
-        boolean isLoggedOut = userService.logout(userRequest.getToken());
+    public ResponseEntity<String> logout(@RequestBody UserRequest userRequest, NativeWebRequest webRequest, HttpServletResponse httpServletResponse) {
+        String authorization = webRequest.getHeader("Authorization");
+        if(authorization == null || !authorization.startsWith("Bearer ")){
+            throw new RuntimeException("UnauthorizedException");
+        }
 
-        if (isLoggedOut) {
+        String token = authorization.substring(7);
+
+        if (token.equals(userRequest.getToken())) {
+            httpServletResponse.setHeader("Authorization", "");
             return ResponseEntity.ok("로그아웃 성공");
         } else {
             return ResponseEntity.badRequest().body("로그아웃 실패");
         }
+
+
+//        boolean isLoggedOut = userService.logout(userRequest.getToken());
+
+//        if (isLoggedOut) {
+//            return ResponseEntity.ok("로그아웃 성공");
+//        } else {
+//            return ResponseEntity.badRequest().body("로그아웃 실패");
+//        }
     }
 }
