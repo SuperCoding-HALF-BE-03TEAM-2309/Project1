@@ -2,6 +2,7 @@ package com.supercoding.Project1.service;
 
 import com.supercoding.Project1.entity.Like;
 import com.supercoding.Project1.repository.LikeRepository;
+import com.supercoding.Project1.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class LikeService {
 
     @Autowired
     private LikeRepository likeRepository;
+    @Autowired
+    private UserRepository userRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(LikeService.class);
 
     @Transactional
@@ -30,9 +34,13 @@ public class LikeService {
     }
 
     @Transactional
-    public Like likePost(Long postId, String email) {
+    public Like likePost(String authEmail, Long postId, String email) {
         logger.info("like by post");
         Like like = new Like();
+        userRepository.findByEmail(authEmail).orElseThrow( IllegalAccessError::new);
+        if( authEmail.equals(email) == false ){
+            return null;
+        }
         like.setPostId(postId);
         like.setEmail(email);
         like.setType(1); // type을 1로 설정시 Post
@@ -40,15 +48,23 @@ public class LikeService {
     }
 
     @Transactional
-    public Like likeComment(Like like) {
+    public Like likeComment(String email, Like like) {
         logger.info("like by comment");
+        userRepository.findByEmail(email).orElseThrow( IllegalAccessError::new);
+        if( email.equals(like.getEmail()) == false) {
+            return null;
+        }
         like.setType(2); //  type을 2로 설정시 Comment
         return likeRepository.save(like);
     }
 
     @Transactional
-    public boolean dislikePost(Like unlike) {
+    public boolean dislikePost(String email, Like unlike) {
         logger.info("dislike post");
+        userRepository.findByEmail(email).orElseThrow( IllegalAccessError::new);
+        if( email.equals(unlike.getEmail()) == false) {
+            return false;
+        }
         List<Like> list = likeRepository.findByEmailAndPostIdAndType(unlike.getEmail(), unlike.getPostId(), 1);
         if( list.size() > 0 ){
             likeRepository.deleteByEmailAndPostIdAndType(unlike.getEmail(), unlike.getPostId(), 1);
@@ -59,8 +75,13 @@ public class LikeService {
     }
 
     @Transactional
-    public boolean dislikeComment(Like unlike) {
+    public boolean dislikeComment(String email, Like unlike) {
         logger.info("dislike comment");
+        userRepository.findByEmail(email).orElseThrow( IllegalAccessError::new);
+        if( email.equals(unlike.getEmail()) == false){
+            return false;
+        }
+
         List<Like> list = likeRepository.findByEmailAndPostIdAndCommentIdAndType(unlike.getEmail(), unlike.getPostId(), unlike.getCommentId(), 2);
         if( list.size() > 0 ){
             likeRepository.deleteByEmailAndPostIdAndCommentIdAndType(unlike.getEmail(), unlike.getPostId(), unlike.getCommentId(), 2);
@@ -80,5 +101,23 @@ public class LikeService {
     public Long countByPostIdAndCommentId(Long postId, Long commentId){
         logger.info("count by comment");
         return likeRepository.countByPostIdAndCommentIdAndType(postId, commentId, 2);
+    }
+
+    public List<Like> findLikePost(String authEmail, Long postId, String email) {
+        logger.info("find like(post)");
+        userRepository.findByEmail(authEmail).orElseThrow( IllegalAccessError::new);
+        if( authEmail.equals(email) == false){
+            return null;
+        }
+        return likeRepository.findByEmailAndPostIdAndType(email,postId,1);
+    }
+
+    public List<Like> findLikeComment(String authEmail, Long postId, Long commentId, String email) {
+        logger.info("find like(comment)");
+        userRepository.findByEmail(authEmail).orElseThrow( IllegalAccessError::new);
+        if( authEmail.equals(email) == false){
+            return null;
+        }
+        return likeRepository.findByEmailAndPostIdAndCommentIdAndType(email, postId, commentId, 2 );
     }
 }
